@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Flow Adjustment - Acid & Caustic</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flow Adjustment Tracker</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f2f5; }
     h2 { color: #007bff; }
@@ -42,28 +42,13 @@
     <label>Initial Level: <input type="number" id="acid_initial" value="90"></label>
     <label>Final Target Level: <input type="number" id="acid_final" value="25"></label>
     <label>Decrease per Step (e.g., 0.1): <input type="number" id="acid_step" value="0.1" step="0.01"></label>
-    <label>Elapsed Time for Last 0.1 Decrease (seconds): <input type="number" id="acid_measuredTime" value="1"></label>
+    <label>Elapsed Time for Last Step (seconds): <input type="number" id="acid_measuredTime" value="1"></label>
     <button onclick="calculateFlow('acid')">🔁 Update Flow Check</button>
 
     <div class="output">
       <p><strong>Target Flow Rate:</strong> <span id="acid_targetFlow">-</span> units/min</p>
-      <p><strong>Required Time for 0.1 Decrease:</strong> <span id="acid_requiredTime">-</span> seconds</p>
+      <p><strong id="acid_requiredLabel">Required Time for 0.1 Decrease:</strong> <span id="acid_requiredTime">-</span> seconds</p>
       <p><strong>Recommendation:</strong> <span id="acid_recommendation">-</span></p>
-    </div>
-  </div>
-
-  <div id="caustic" class="section">
-    <h3>Caustic Tracking</h3>
-    <label>Initial Level: <input type="number" id="caustic_initial" value="50"></label>
-    <label>Final Target Level: <input type="number" id="caustic_final" value="34.9"></label>
-    <label>Decrease per Step (e.g., 0.1): <input type="number" id="caustic_step" value="0.1" step="0.01"></label>
-    <label>Elapsed Time for Last 0.1 Decrease (seconds): <input type="number" id="caustic_measuredTime" value="1"></label>
-    <button onclick="calculateFlow('caustic')">🔁 Update Flow Check</button>
-
-    <div class="output">
-      <p><strong>Target Flow Rate:</strong> <span id="caustic_targetFlow">-</span> units/min</p>
-      <p><strong>Required Time for 0.1 Decrease:</strong> <span id="caustic_requiredTime">-</span> seconds</p>
-      <p><strong>Recommendation:</strong> <span id="caustic_recommendation">-</span></p>
     </div>
   </div>
 
@@ -75,8 +60,10 @@
     function startSession() {
       startTime = new Date();
       endTime = new Date(startTime.getTime() + 30 * 60000);
+
       document.getElementById("startTime").textContent = startTime.toLocaleTimeString();
       document.getElementById("endTime").textContent = endTime.toLocaleTimeString();
+
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(updateCurrentTime, 1000);
       updateCurrentTime();
@@ -131,10 +118,11 @@
       }
 
       document.getElementById(id + "_targetFlow").textContent = targetFlow.toFixed(2);
+      document.getElementById(id + "_requiredLabel").textContent = `Required Time for ${step} Decrease:`;
       document.getElementById(id + "_requiredTime").textContent = `${lower.toFixed(1)} – ${upper.toFixed(1)}`;
       document.getElementById(id + "_recommendation").textContent = recommendation;
     }
   </script>
 </body>
 </html>
-rename file and deploy to GitHub Pages
+Update index.html with dynamic step label and fixes
