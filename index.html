@@ -70,11 +70,8 @@
     function updateCurrentTime() {
       if (!startTime || !endTime) return;
       const now = new Date();
-      document.getElementById("currentTime").textContent = now.toLocaleTimeString();
       const elapsed = (now - startTime) / 60000;
-      const remaining = (endTime - now) / 60000;
       document.getElementById("elapsed").textContent = elapsed.toFixed(2);
-      document.getElementById("countdown").textContent = remaining > 0 ? remaining.toFixed(2) : "0.00";
     }
 
     function switchTab(tabName) {
