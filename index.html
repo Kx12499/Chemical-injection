@@ -27,7 +27,7 @@
   <div class="timebox">
     <p><strong>Start Time:</strong> <span id="startTime">-</span></p>
     <p><strong>End Time (30 mins later):</strong> <span id="endTime">-</span></p>
-    <p><strong>Elapsed Time:</strong> <span id="elapsed">-</span> minutes</p>
+    <p><strong>Elapsed Time:</strong> <span id="elapsed">-</span> seconds</p>
   </div>
 
   <div class="tabs">
@@ -71,8 +71,8 @@
       if (!startTime || !endTime) return;
       const now = new Date();
       const elapsedMs = now - startTime;
-      const elapsedMinutes = (elapsedMs / 60000).toFixed(2);
-      document.getElementById("elapsed").textContent = elapsedMinutes;
+      const elapsedSeconds = Math.floor(elapsedMs / 1000);
+      document.getElementById("elapsed").textContent = elapsedSeconds;
     }
 
     function switchTab(tabName) {
