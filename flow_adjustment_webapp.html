@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flow Adjustment - Acid & Caustic</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f2f5; }
+    h2 { color: #007bff; }
+    label { display: block; margin-top: 10px; }
+    input { margin-left: 10px; padding: 4px; width: 100px; }
+    .output { margin-top: 15px; background: #e9ecef; padding: 10px; border-radius: 5px; }
+    .timebox { margin: 10px 0; padding: 10px; background: #ffffff; border: 1px solid #ccc; border-radius: 5px; }
+    button { margin-top: 10px; padding: 8px 12px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tabs button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    .tabs button.active { background-color: #0056b3; }
+    .section { display: none; }
+    .section.active { display: block; }
+  </style>
+</head>
+<body>
+  <h2>Flow Adjustment Tracker</h2>
+
+  <button onclick="startSession()">▶️ Start</button>
+
+  <div class="timebox">
+    <p><strong>Start Time:</strong> <span id="startTime">-</span></p>
+    <p><strong>End Time (30 mins later):</strong> <span id="endTime">-</span></p>
+    <p><strong>Current Time:</strong> <span id="currentTime">-</span></p>
+    <p><strong>Elapsed Time:</strong> <span id="elapsed">-</span> minutes</p>
+    <p><strong>Countdown Remaining:</strong> <span id="countdown">-</span> minutes</p>
+  </div>
+
+  <div class="tabs">
+    <button onclick="switchTab('acid')" class="active">Acid</button>
+    <button onclick="switchTab('caustic')">Caustic</button>
+  </div>
+
+  <div id="acid" class="section active">
+    <h3>Acid Tracking</h3>
+    <label>Initial Level: <input type="number" id="acid_initial" value="90"></label>
+    <label>Final Target Level: <input type="number" id="acid_final" value="25"></label>
+    <label>Decrease per Step (e.g., 0.1): <input type="number" id="acid_step" value="0.1" step="0.01"></label>
+    <label>Elapsed Time for Last 0.1 Decrease (seconds): <input type="number" id="acid_measuredTime" value="1"></label>
+    <button onclick="calculateFlow('acid')">🔁 Update Flow Check</button>
+
+    <div class="output">
+      <p><strong>Target Flow Rate:</strong> <span id="acid_targetFlow">-</span> units/min</p>
+      <p><strong>Required Time for 0.1 Decrease:</strong> <span id="acid_requiredTime">-</span> seconds</p>
+      <p><strong>Recommendation:</strong> <span id="acid_recommendation">-</span></p>
+    </div>
+  </div>
+
+  <div id="caustic" class="section">
+    <h3>Caustic Tracking</h3>
+    <label>Initial Level: <input type="number" id="caustic_initial" value="50"></label>
+    <label>Final Target Level: <input type="number" id="caustic_final" value="34.9"></label>
+    <label>Decrease per Step (e.g., 0.1): <input type="number" id="caustic_step" value="0.1" step="0.01"></label>
+    <label>Elapsed Time for Last 0.1 Decrease (seconds): <input type="number" id="caustic_measuredTime" value="1"></label>
+    <button onclick="calculateFlow('caustic')">🔁 Update Flow Check</button>
+
+    <div class="output">
+      <p><strong>Target Flow Rate:</strong> <span id="caustic_targetFlow">-</span> units/min</p>
+      <p><strong>Required Time for 0.1 Decrease:</strong> <span id="caustic_requiredTime">-</span> seconds</p>
+      <p><strong>Recommendation:</strong> <span id="caustic_recommendation">-</span></p>
+    </div>
+  </div>
+
+  <script>
+    let startTime = null;
+    let endTime = null;
+    let timerInterval = null;
+
+    function startSession() {
+      startTime = new Date();
+      endTime = new Date(startTime.getTime() + 30 * 60000);
+      document.getElementById("startTime").textContent = startTime.toLocaleTimeString();
+      document.getElementById("endTime").textContent = endTime.toLocaleTimeString();
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateCurrentTime, 1000);
+      updateCurrentTime();
+    }
+
+    function updateCurrentTime() {
+      if (!startTime || !endTime) return;
+      const now = new Date();
+      document.getElementById("currentTime").textContent = now.toLocaleTimeString();
+      const elapsed = (now - startTime) / 60000;
+      const remaining = (endTime - now) / 60000;
+      document.getElementById("elapsed").textContent = elapsed.toFixed(2);
+      document.getElementById("countdown").textContent = remaining > 0 ? remaining.toFixed(2) : "0.00";
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll(".section").forEach(section => section.classList.remove("active"));
+      document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(tabName).classList.add("active");
+      event.target.classList.add("active");
+    }
+
+    function calculateFlow(id) {
+      if (!startTime || !endTime) {
+        alert("Please press 'Start' first to begin the session.");
+        return;
+      }
+
+      const init = parseFloat(document.getElementById(id + '_initial').value);
+      const fin = parseFloat(document.getElementById(id + '_final').value);
+      const step = parseFloat(document.getElementById(id + '_step').value);
+      const measuredTime = parseFloat(document.getElementById(id + '_measuredTime').value);
+
+      const now = new Date();
+      const remainingTime = (endTime - now) / 60000;
+      const levelToDrop = init - fin;
+      const targetFlow = levelToDrop / remainingTime;
+      const requiredTime = (step / targetFlow) * 60;
+
+      const distanceRatio = (init - fin) / init;
+      const margin = distanceRatio < 0.2 ? 0.05 : (distanceRatio < 0.5 ? 0.1 : 0.25);
+      const lower = requiredTime * (1 - margin);
+      const upper = requiredTime * (1 + margin);
+
+      let recommendation = "-";
+      if (measuredTime < lower) {
+        recommendation = "⚠️ ไหลเร็วเกินไป → ปรับลดวาล์วเล็กน้อย";
+      } else if (measuredTime > upper) {
+        recommendation = "⚠️ ไหลช้าเกินไป → เปิดวาล์วเพิ่มเล็กน้อย";
+      } else {
+        recommendation = "✅ อยู่ในช่วงที่เหมาะสม";
+      }
+
+      document.getElementById(id + "_targetFlow").textContent = targetFlow.toFixed(2);
+      document.getElementById(id + "_requiredTime").textContent = `${lower.toFixed(1)} – ${upper.toFixed(1)}`;
+      document.getElementById(id + "_recommendation").textContent = recommendation;
+    }
+  </script>
+</body>
+</html>
