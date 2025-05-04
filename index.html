@@ -69,6 +69,7 @@
     let startTime = null;
     let endTime = null;
     let timerInterval = null;
+    const lastUpdate = { acid: null, caustic: null };
 
     function startSession() {
       startTime = new Date();
@@ -80,6 +81,9 @@
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(updateCurrentTime, 1000);
       updateCurrentTime();
+
+      lastUpdate.acid = startTime;
+      lastUpdate.caustic = startTime;
     }
 
     function updateCurrentTime() {
@@ -90,6 +94,31 @@
       const seconds = Math.floor((elapsedMs % 60000) / 1000);
       const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       document.getElementById("elapsed").textContent = display;
+
+      updateLevel("acid", now);
+      updateLevel("caustic", now);
+    }
+
+    function updateLevel(id, now) {
+      const initInput = document.getElementById(id + '_initial');
+      if (document.activeElement === initInput) return;
+      let init = parseFloat(initInput.value);
+      const fin = parseFloat(document.getElementById(id + '_final').value);
+      const step = parseFloat(document.getElementById(id + '_step').value);
+      const measuredTime = parseFloat(document.getElementById(id + '_measuredTime').value);
+
+      if (isNaN(init) || isNaN(fin) || isNaN(step) || isNaN(measuredTime) || measuredTime <= 0) return;
+
+      const last = lastUpdate[id];
+      if (!last) return;
+
+      const deltaTime = (now - last) / 1000;
+      const stepsPassed = deltaTime / measuredTime;
+      const totalDecrease = stepsPassed * step;
+      const newLevel = Math.max(fin, init - totalDecrease);
+
+      initInput.value = newLevel.toFixed(2);
+      lastUpdate[id] = now;
     }
 
     function switchTab(tabName) {
