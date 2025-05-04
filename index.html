@@ -50,6 +50,21 @@
     </div>
   </div>
 
+  <div id="caustic" class="section">
+    <h3>Caustic Tracking</h3>
+    <label>Initial Level: <input type="number" id="caustic_initial" value="50"></label>
+    <label>Final Target Level: <input type="number" id="caustic_final" value="34.9"></label>
+    <label>Decrease per Step (e.g., 0.1): <input type="number" id="caustic_step" value="0.1" step="0.01"></label>
+    <label>Elapsed Time for Last Step (seconds): <input type="number" id="caustic_measuredTime" value="1"></label>
+    <button onclick="calculateFlow('caustic')">🔁 Update Flow Check</button>
+
+    <div class="output">
+      <p><strong>Target Flow Rate:</strong> <span id="caustic_targetFlow">-</span> units/min</p>
+      <p><strong id="caustic_requiredLabel">Required Time for 0.1 Decrease:</strong> <span id="caustic_requiredTime">-</span> seconds</p>
+      <p><strong>Recommendation:</strong> <span id="caustic_recommendation">-</span></p>
+    </div>
+  </div>
+
   <script>
     let startTime = null;
     let endTime = null;
