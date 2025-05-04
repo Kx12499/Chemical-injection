@@ -101,8 +101,10 @@
 
     function updateLevel(id, now) {
       const initInput = document.getElementById(id + '_initial');
+      if (!initInput) return;
       if (document.activeElement === initInput) return;
-      let init = parseFloat(initInput.value);
+
+      let init = parseFloat(initInput.dataset.actual || initInput.value);
       const fin = parseFloat(document.getElementById(id + '_final').value);
       const step = parseFloat(document.getElementById(id + '_step').value);
       const measuredTime = parseFloat(document.getElementById(id + '_measuredTime').value);
@@ -112,13 +114,15 @@
       const last = lastUpdate[id];
       if (!last) return;
 
-      const deltaTime = (now - last) / 1000;
+      const deltaTime = (now - lastUpdate[id]) / 1000;
+      if (deltaTime <= 0) return;
       const stepsPassed = deltaTime / measuredTime;
       const totalDecrease = stepsPassed * step;
       const newLevel = Math.max(fin, init - totalDecrease);
 
-      initInput.value = newLevel.toFixed(2);
-      lastUpdate[id] = now;
+      initInput.dataset.actual = newLevel.toFixed(6); // keep full precision
+      initInput.value = Number(newLevel.toFixed(1)); // display 1 decimal only
+            lastUpdate[id] = new Date();
     }
 
     function switchTab(tabName) {
